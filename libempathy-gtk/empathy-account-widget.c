@@ -1,26 +1,26 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- * Copyright (C) 2006-2007 Imendio AB
- * Copyright (C) 2007-2008 Collabora Ltd.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
- * Boston, MA  02110-1301  USA
- *
- * Authors: Xavier Claessens <xclaesse@gmail.com>
- *          Martyn Russell <martyn@imendio.com>
- */
+* Copyright (C) 2006-2007 Imendio AB
+* Copyright (C) 2007-2008 Collabora Ltd.
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License as
+* published by the Free Software Foundation; either version 2 of the
+* License, or (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* General Public License for more details.
+*
+* You should have received a copy of the GNU General Public
+* License along with this program; if not, write to the
+* Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
+* Boston, MA  02110-1301  USA
+*
+* Authors: Xavier Claessens <xclaesse@gmail.com>
+*          Martyn Russell <martyn@imendio.com>
+*/
 
 #include <config.h>
 
@@ -256,6 +256,12 @@ account_widget_generic_format_param_name (const gchar *param_name)
 }
 
 static void
+account_widget_default_entry_realized_cb (GtkWidget *default_focus_widget, gpointer data)
+{
+	gtk_widget_grab_focus (default_focus_widget);	
+}
+
+static void
 accounts_widget_generic_setup (McAccount *account,
 			       GtkWidget *table_common_settings,
 			       GtkWidget *table_advanced_settings)
@@ -313,6 +319,11 @@ accounts_widget_generic_setup (McAccount *account,
 			gtk_widget_show (widget);
 
 			widget = gtk_entry_new ();
+			if (strcmp (param->name, "account") == 0) {
+				g_signal_connect (widget, "realize",
+						  G_CALLBACK (account_widget_default_entry_realized_cb),
+						  NULL);
+			}
 			gtk_table_attach (GTK_TABLE (table_settings),
 					  widget,
 					  1, 2,
@@ -459,6 +470,19 @@ empathy_account_widget_add_forget_button (McAccount   *account,
 			  button_forget);
 }
 
+void
+empathy_account_widget_set_default_focus (GtkBuilder  *gui,
+					  const gchar *entry)
+{
+	GtkWidget *default_focus_entry;
+	
+	default_focus_entry = GTK_WIDGET (gtk_builder_get_object (gui, entry));
+	
+	g_signal_connect (default_focus_entry, "realize",
+			  G_CALLBACK (account_widget_default_entry_realized_cb),
+			  NULL);
+}
+
 GtkWidget *
 empathy_account_widget_generic_new (McAccount *account)
 {
@@ -507,6 +531,9 @@ empathy_account_widget_salut_new (McAccount *account)
 			"entry_jid", "jid",
 			NULL);
 
+	empathy_account_widget_set_default_focus (gui,
+						  "entry_nickname");
+
 	return empathy_builder_unref_and_keep_widget (gui, widget);
 }
 
@@ -534,6 +561,9 @@ empathy_account_widget_msn_new (McAccount *account)
 	empathy_account_widget_add_forget_button (account, gui,
 						  "button_forget",
 						  "entry_password");
+	
+	empathy_account_widget_set_default_focus (gui,
+						  "entry_id");
 
 	return empathy_builder_unref_and_keep_widget (gui, widget);
 }
@@ -572,6 +602,9 @@ empathy_account_widget_jabber_new (McAccount *account)
 						  "button_forget",
 						  "entry_password");
 
+	empathy_account_widget_set_default_focus (gui,
+						  "entry_id");
+
 	g_signal_connect (checkbutton_ssl, "toggled",
 			  G_CALLBACK (account_widget_jabber_ssl_toggled_cb),
 			  spinbutton_port);
@@ -607,6 +640,9 @@ empathy_account_widget_icq_new (McAccount *account)
 						  "button_forget",
 						  "entry_password");
 
+	empathy_account_widget_set_default_focus (gui,
+						  "entry_uin");
+
 	return empathy_builder_unref_and_keep_widget (gui, widget);
 }
 
@@ -636,6 +672,9 @@ empathy_account_widget_aim_new (McAccount *account)
 	empathy_account_widget_add_forget_button (account, gui,
 						  "button_forget",
 						  "entry_password");
+
+	empathy_account_widget_set_default_focus (gui,
+						  "entry_screenname");
 
 	return empathy_builder_unref_and_keep_widget (gui, widget);
 }
@@ -669,6 +708,9 @@ empathy_account_widget_yahoo_new (McAccount *account)
 						  "button_forget",
 						  "entry_password");
 
+	empathy_account_widget_set_default_focus (gui,
+						  "entry_id");
+
 	return empathy_builder_unref_and_keep_widget (gui, widget);
 }
 
@@ -696,6 +738,9 @@ empathy_account_widget_groupwise_new (McAccount *account)
 	empathy_account_widget_add_forget_button (account, gui,
 						  "button_forget",
 						  "entry_password");
+
+	empathy_account_widget_set_default_focus (gui,
+						  "entry_id");
 
 	return empathy_builder_unref_and_keep_widget (gui, widget);
 }
